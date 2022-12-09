@@ -61,18 +61,25 @@ class Selenium:
         self.delay()
 
         #  Pegando HTML da página
-        page_html = self.driver.page_source
-        with open("analise.html", "w") as file:
-            file.write(page_html)
+        write_html(html=self.driver.page_source, prefix_name="analise")
 
-        shopping_link_list = self.verify_if_compare(html=page_html)
+        shopping_link_list = self.verify_if_compare(html=self.driver.page_source)
         if shopping_link_list is None:
             print("Não encontrei link do shopping comparação")
             raise Exception("Erro!")
 
         for link in shopping_link_list:
             shopping_url = url + link
-            print(shopping_url)
+            self.driver.get(shopping_url)
+            page_element = self.driver.find_element(by="xpath", value='//*[@id="sh-osd__headers"]/th[4]/a')
+            page_element.click()
+
+            write_html(html=self.driver.page_source, prefix_name="tabela")
+
+            product_table = get_product_table(html=self.driver.page_source)
+
+            print("aqui")
+            sleep(999)
 
         #  Coletando ‘cookies’ do selenium
         cookie = self.driver.get_cookies()
@@ -99,9 +106,9 @@ class Selenium:
 
 def format_link_string(link_list: list) -> list:
     """
-    Verifica se possui o link de comparação com 10 ou mais lojas
-    :param link_list: uma lista com todas as ofertas de comparação
-    :return: lista de todos os links possiveis com 10 ou mais lojas
+    Verifica se possui o link de comparação com 10 ou mais lojas.
+    :param link_list: uma lista com todas as ofertas de comparação.
+    :return: lista de todos os links possíveis com 10 ou mais lojas
     """
     new_link_list = []
     for link in link_list:
@@ -111,6 +118,31 @@ def format_link_string(link_list: list) -> list:
             link = str(link).replace('<a class="iXEZD" data-sh-gr="line" href="', "")
             new_link_list.append(link)
     return new_link_list
+
+
+def get_product_table(html: str) -> list:
+    """
+    :param html: pagina shopping ja ordenada do menor para o maior
+    :return: uma lista com objetos representando cada linha dentro do shopping
+    """
+    soup = BeautifulSoup(html, "html.parser")
+    table_data = soup.find_all("table")
+
+    print(len(table_data))
+    print(table_data)
+
+    for i in range(len(table_data)):
+        print(i, "--->", table_data[i])
+        print()
+        print()
+        print()
+    return []
+
+
+def write_html(html: str, prefix_name: str) -> None:
+    with open(f"{prefix_name}.html", "w") as file:
+        file.write(html)
+    return
 
 
 def main() -> None:
