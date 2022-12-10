@@ -68,21 +68,25 @@ class Selenium:
             print("Não encontrei link do shopping comparação")
             raise Exception("Erro!")
 
-        for link in shopping_link_list:
-            shopping_url = url + link
+        for index in range(len(shopping_link_list)):
+            shopping_url = url + shopping_link_list[index]
+            print(shopping_url)
+
             self.driver.get(shopping_url)
             page_element = self.driver.find_element(by="xpath", value='//*[@id="sh-osd__headers"]/th[4]/a')
             page_element.click()
 
             write_html(html=self.driver.page_source, prefix_name="tabela")
 
+            print(f"tabela --> {index}")
             product_table = get_product_table(html=self.driver.page_source)
 
-            print("aqui")
             sleep(999)
 
-        #  Coletando ‘cookies’ do selenium
-        cookie = self.driver.get_cookies()
+        print("Fora")
+        sleep(999)
+        # #  Coletando ‘cookies’ do selenium
+        # cookie = self.driver.get_cookies()
 
     @staticmethod
     def delay():
@@ -129,13 +133,26 @@ def get_product_table(html: str) -> list:
     table_data = soup.find_all("table")
 
     print(len(table_data))
-    print(table_data)
 
     for i in range(len(table_data)):
-        print(i, "--->", table_data[i])
-        print()
-        print()
-        print()
+        for j in range(len(table_data[i])):
+            j = table_data[j].find_all_next("tr")
+            print("ESSA É A TR ->", j)
+            print()
+            print()
+            print()
+            print()
+            for k in j:
+                print("Esse é o elemento -->", k)
+                print()
+                print()
+                print()
+                print()
+            sleep(999)
+        # print(i, "--->", table_data[i])
+        # print()
+        # print()
+        # print()
     return []
 
 
