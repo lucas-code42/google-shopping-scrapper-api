@@ -52,7 +52,7 @@ class Selenium:
         page_element = self.driver.find_element(
             by="xpath", value="/html/body/div[1]/div[3]/form/div[1]/div[1]/div[1]/div/div[2]/input")
         page_element.click()
-        page_element.send_keys("Ultrabook Dell Latitude Core I7 7ª Ger Ddr4 16gb Ssd 512gb")
+        page_element.send_keys("Ar Condicionado Split Hw On/off Eco Garden Gree 18000 Btus, Quente/Frio, 220V, Monofásico – GWH18QD-D3NNB4B")
         page_element.submit()
         self.delay()
 
@@ -80,8 +80,6 @@ class Selenium:
 
             print(f"tabela --> {index}")
             product_table = get_product_table(html=self.driver.page_source)
-
-            sleep(999)
 
         print("Fora")
         sleep(999)
@@ -142,13 +140,12 @@ def get_product_table(html: str) -> list:
             print()
             print()
             print()
-            for k in j:
-                print("Esse é o elemento -->", k)
+            for k in range(len(j)):
+                print("Esse é o elemento -->", k, "-->", j[k])
                 print()
                 print()
                 print()
                 print()
-            sleep(999)
         # print(i, "--->", table_data[i])
         # print()
         # print()
