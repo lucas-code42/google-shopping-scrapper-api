@@ -1,4 +1,5 @@
 from time import sleep
+import re
 
 import pandas as pd
 from bs4 import BeautifulSoup
@@ -52,7 +53,8 @@ class Selenium:
         page_element = self.driver.find_element(
             by="xpath", value="/html/body/div[1]/div[3]/form/div[1]/div[1]/div[1]/div/div[2]/input")
         page_element.click()
-        page_element.send_keys("Ar Condicionado Split Hw On/off Eco Garden Gree 18000 Btus, Quente/Frio, 220V, Monofásico – GWH18QD-D3NNB4B")
+        page_element.send_keys("Ar Condicionado Split Hw On/off Eco Garden Gree 18000 Btus, Quente/Frio, 220V, "
+                               "Monofásico – GWH18QD-D3NNB4B")
         page_element.submit()
         self.delay()
 
@@ -141,7 +143,10 @@ def get_product_table(html: str) -> list:
             print()
             print()
             for k in range(len(j)):
-                print("Esse é o elemento -->", k, "-->", j[k])
+                # print("Esse é o elemento -->", k, "-->", j[k])
+                if k == 1:
+                    print("regex aqui -->", j[k])
+                    get_all_td(html_slice=str(j[k]))
                 print()
                 print()
                 print()
@@ -151,6 +156,36 @@ def get_product_table(html: str) -> list:
         # print()
         # print()
     return []
+
+
+def get_all_td(html_slice: str) -> None:
+    soup = BeautifulSoup(html_slice, "html.parser")
+    td = soup.find_all("td")
+    for i in range(len(td)):
+        if i == 2:
+            print(td[i])
+            extract_values(txt=str(td[i]))
+        print()
+        print()
+        print()
+
+
+def extract_values(txt: str) -> dict:
+    print(type(txt))
+    print(txt)
+    txt = txt.split(">")
+    txt = txt[2].replace("</span", "").replace("R$", "")
+    print(txt)
+
+    x = re.search(r'^\s*(?:[1-9]\d{0,2}(?:\.\d{3})*|0),\d{2}$', txt)
+
+    if x:
+        value = str(x.group())
+        print("aqui", value)
+        print("YES! We have a match!")
+    else:
+        print("No match")
+    sleep(999)
 
 
 def write_html(html: str, prefix_name: str) -> None:
