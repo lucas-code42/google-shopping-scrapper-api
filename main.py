@@ -122,11 +122,11 @@ def get_product_name(html: str) -> str:
     a_tag = soup.find_all("a")
     for i in range(len(a_tag)):
         if i == 7:
-            print(a_tag[i])
-            print("ok")
+            # print(a_tag[i])
+            # print("ok")
             product_name = str(a_tag[i]).split(">")
             product_name = product_name[-2].replace("</a", "").rstrip()
-            print(product_name)
+            print("nome do produto --->", product_name)
             return product_name
 
 
@@ -154,7 +154,7 @@ def scrapper_table(html: str) -> list:
     soup = BeautifulSoup(html, "html.parser")
     table_data = soup.find_all("table")
 
-    print(len(table_data))
+    # print(len(table_data))
 
     for i in range(len(table_data)):
         for j in range(len(table_data[i])):
@@ -162,7 +162,7 @@ def scrapper_table(html: str) -> list:
             for k in range(len(j)):
                 # print("Esse é o elemento -->", k, "-->", j[k])
                 if k == 1:
-                    print("regex aqui -->", j[k])
+                    # print("regex aqui -->", j[k])
                     get_all_td(html_slice=str(j[k]))
         # print(i, "--->", table_data[i])
         # print()
@@ -180,7 +180,7 @@ def get_all_td(html_slice: str) -> None:
     td = soup.find_all("td")
     for i in range(len(td)):
         if i == 2:
-            print(td[i])
+            # print(td[i])
             extract_values(txt=str(td[i]))
 
 
@@ -189,8 +189,8 @@ def extract_values(txt: str) -> list[str, str] | None:
     :param txt: parte de uma tag <td> html
     :return: uma lista contento na pos 0 o valor e na pos 1 o valor parcelado se houver, caso nao None
     """
-    print(type(txt))
-    print(txt)
+    # print(type(txt))
+    # print(txt)
     original = txt.split(">")
     value = original[2].replace("</span", "").replace("R$", "")
 
@@ -206,14 +206,13 @@ def extract_values(txt: str) -> list[str, str] | None:
     except Exception as ex:
         print("Não encontrei sem juros", ex)
 
-    print(txt)
+    # print(txt)
 
     validation = re.search(r'^\s*(?:[1-9]\d{0,2}(?:\.\d{3})*|0),\d{2}$', value)
     if validation:
         value = validation.group().rstrip().replace(" ", "")
         installment = str(installment).rstrip().replace(" ", "")
-        print(value)
-        print(installment)
+        print("valores capturados", value, installment)
         return [value, installment]
     else:
         print("Não encontrei valor e nem valor de parcelamento!")
