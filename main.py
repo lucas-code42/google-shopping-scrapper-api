@@ -1,5 +1,5 @@
-from time import sleep
 import re
+from time import sleep
 
 import pandas as pd
 from bs4 import BeautifulSoup
@@ -70,17 +70,22 @@ class Selenium:
             print("Não encontrei link do shopping comparação")
             raise Exception("Erro!")
 
+        result = []
         for index in range(len(shopping_link_list)):
             shopping_url = url + shopping_link_list[index]
             print(shopping_url)
 
             self.driver.get(shopping_url)
+
+            #  Ordena usando o filtro do google
             page_element = self.driver.find_element(by="xpath", value='//*[@id="sh-osd__headers"]/th[4]/a')
             page_element.click()
 
             write_html(html=self.driver.page_source, prefix_name="tabela")
 
             print(f"tabela --> {index}")
+            tmp_obj = {}
+            product_name = get_product_name(html=self.driver.page_source)
             product_table = get_product_table(html=self.driver.page_source)
 
         print("Fora")
@@ -106,6 +111,19 @@ class Selenium:
             return link_list
         else:
             return None
+
+
+def get_product_name(html: str) -> str:
+    soup = BeautifulSoup(html, "html.parser")
+    a_tag = soup.find_all("a")
+    for i in range(len(a_tag)):
+        if i == 7:
+            print(a_tag[i])
+            print("ok")
+            product_name = str(a_tag[i]).split(">")
+            product_name = product_name[-2].replace("</a", "").rstrip()
+            print(product_name)
+            sleep(999)
 
 
 def format_link_string(link_list: list) -> list:
@@ -137,20 +155,11 @@ def get_product_table(html: str) -> list:
     for i in range(len(table_data)):
         for j in range(len(table_data[i])):
             j = table_data[j].find_all_next("tr")
-            print("ESSA É A TR ->", j)
-            print()
-            print()
-            print()
-            print()
             for k in range(len(j)):
                 # print("Esse é o elemento -->", k, "-->", j[k])
                 if k == 1:
                     print("regex aqui -->", j[k])
                     get_all_td(html_slice=str(j[k]))
-                print()
-                print()
-                print()
-                print()
         # print(i, "--->", table_data[i])
         # print()
         # print()
@@ -165,27 +174,36 @@ def get_all_td(html_slice: str) -> None:
         if i == 2:
             print(td[i])
             extract_values(txt=str(td[i]))
-        print()
-        print()
-        print()
 
 
 def extract_values(txt: str) -> dict:
     print(type(txt))
     print(txt)
-    txt = txt.split(">")
-    txt = txt[2].replace("</span", "").replace("R$", "")
+    original = txt.split(">")
+    value = original[2].replace("</span", "").replace("R$", "")
+
+    installment = ""
+
+    try:
+        installment = original[4].replace(" - com juros</div", "").replace("R$", "")
+    except Exception as ex:
+        print("Não encontrei com juros", ex)
+
+    try:
+        installment = original[4].replace(" - sem juros</div", "").replace("R$", "")
+    except Exception as ex:
+        print("Não encontrei sem juros", ex)
+
     print(txt)
 
-    x = re.search(r'^\s*(?:[1-9]\d{0,2}(?:\.\d{3})*|0),\d{2}$', txt)
-
-    if x:
-        value = str(x.group())
-        print("aqui", value)
-        print("YES! We have a match!")
+    validation = re.search(r'^\s*(?:[1-9]\d{0,2}(?:\.\d{3})*|0),\d{2}$', value)
+    if validation:
+        value = validation.group().rstrip().replace(" ", "")
+        installment = str(installment).rstrip().replace(" ", "")
+        print(value)
+        print(installment)
     else:
         print("No match")
-    sleep(999)
 
 
 def write_html(html: str, prefix_name: str) -> None:

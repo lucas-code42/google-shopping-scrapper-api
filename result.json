@@ -1,0 +1,25 @@
+[
+  {
+    "Título do Produto": [
+      "url_tabela",
+
+      {
+        "mercado Livre": "url",
+        "valor": "999,00",
+        "valorParcelado": "10 x 99,99"
+      },
+
+      {
+        "magalu": "url",
+        "valor": "999,00",
+        "valorParcelado": "10 x 99,99"
+      },
+
+      {
+        "kabum": "url",
+        "valor": "999,00",
+        "valorParcelado": "10 x 99,99"
+      }
+    ]
+  }
+]
