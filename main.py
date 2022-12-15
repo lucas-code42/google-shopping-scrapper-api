@@ -86,7 +86,7 @@ class Selenium:
             print(f"tabela --> {index}")
             tmp_obj = {}
             product_name = get_product_name(html=self.driver.page_source)
-            product_table = get_product_table(html=self.driver.page_source)
+            product_table = scrapper_table(html=self.driver.page_source)
 
         print("Fora")
         sleep(999)
@@ -114,6 +114,10 @@ class Selenium:
 
 
 def get_product_name(html: str) -> str:
+    """
+    :param html: html da página
+    :return: nome do produto situado no html
+    """
     soup = BeautifulSoup(html, "html.parser")
     a_tag = soup.find_all("a")
     for i in range(len(a_tag)):
@@ -123,7 +127,7 @@ def get_product_name(html: str) -> str:
             product_name = str(a_tag[i]).split(">")
             product_name = product_name[-2].replace("</a", "").rstrip()
             print(product_name)
-            sleep(999)
+            return product_name
 
 
 def format_link_string(link_list: list) -> list:
@@ -142,7 +146,7 @@ def format_link_string(link_list: list) -> list:
     return new_link_list
 
 
-def get_product_table(html: str) -> list:
+def scrapper_table(html: str) -> list:
     """
     :param html: pagina shopping ja ordenada do menor para o maior
     :return: uma lista com objetos representando cada linha dentro do shopping
@@ -168,6 +172,10 @@ def get_product_table(html: str) -> list:
 
 
 def get_all_td(html_slice: str) -> None:
+    """
+    :param html_slice: uma fatia da tabela
+    :return: valores dentro de uma lista (valor, valor parcelado)
+    """
     soup = BeautifulSoup(html_slice, "html.parser")
     td = soup.find_all("td")
     for i in range(len(td)):
@@ -176,7 +184,11 @@ def get_all_td(html_slice: str) -> None:
             extract_values(txt=str(td[i]))
 
 
-def extract_values(txt: str) -> dict:
+def extract_values(txt: str) -> list[str, str] | None:
+    """
+    :param txt: parte de uma tag <td> html
+    :return: uma lista contento na pos 0 o valor e na pos 1 o valor parcelado se houver, caso nao None
+    """
     print(type(txt))
     print(txt)
     original = txt.split(">")
@@ -202,11 +214,18 @@ def extract_values(txt: str) -> dict:
         installment = str(installment).rstrip().replace(" ", "")
         print(value)
         print(installment)
+        return [value, installment]
     else:
-        print("No match")
+        print("Não encontrei valor e nem valor de parcelamento!")
+    return
 
 
 def write_html(html: str, prefix_name: str) -> None:
+    """
+    :param html: string html.
+    :param prefix_name: nome do arquivo.
+    :return: None
+    """
     with open(f"{prefix_name}.html", "w") as file:
         file.write(html)
     return
