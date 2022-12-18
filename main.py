@@ -160,10 +160,13 @@ def scrapper_table(html: str) -> list:
         for j in range(len(table_data[i])):
             j = table_data[j].find_all_next("tr")
             for k in range(len(j)):
-                # print("Esse é o elemento -->", k, "-->", j[k])
-                if k == 1:
-                    # print("regex aqui -->", j[k])
-                    get_all_td(html_slice=str(j[k]))
+                # print(j[k])
+                # print("posição -->", k, j[k])
+                get_all_td(html_slice=str(j[k]))
+            # sleep(999)
+            # print("Esse é o elemento -->", k, "-->", j[k])
+            # if k == 1:
+            #     get_all_td(html_slice=str(j[k]))
         # print(i, "--->", table_data[i])
         # print()
         # print()
