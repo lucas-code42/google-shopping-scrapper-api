@@ -1,9 +1,14 @@
+import json
 import re
 from time import sleep
 
 import pandas as pd
 from bs4 import BeautifulSoup
 from selenium import webdriver
+
+RESULT = []
+TMP_RESULT_OBJ = {}
+TMP_RESULT_LIST = []
 
 
 def read_input_file() -> list:
@@ -70,10 +75,13 @@ class Selenium:
             print("Não encontrei link do shopping comparação")
             raise Exception("Erro!")
 
-        result = []
         for index in range(len(shopping_link_list)):
+            TMP_RESULT_LIST.clear()
+            TMP_RESULT_OBJ.clear()
+
             shopping_url = url + shopping_link_list[index]
             print(shopping_url)
+            TMP_RESULT_OBJ["referencia"] = shopping_url
 
             self.driver.get(shopping_url)
 
@@ -84,11 +92,18 @@ class Selenium:
             write_html(html=self.driver.page_source, prefix_name="tabela")
 
             print(f"tabela --> {index}")
-            tmp_obj = {}
             product_name = get_product_name(html=self.driver.page_source)
+            TMP_RESULT_OBJ["nome_produto"] = product_name
             product_table = scrapper_table(html=self.driver.page_source)
 
+            TMP_RESULT_LIST.append(TMP_RESULT_OBJ)
+
+        RESULT.append(TMP_RESULT_LIST)
         print("Fora")
+        print()
+        print(RESULT)
+        with open("final_result.json", "w") as f:
+            f.write(json.dumps(RESULT))
         sleep(999)
         # #  Coletando ‘cookies’ do selenium
         # cookie = self.driver.get_cookies()
@@ -151,40 +166,34 @@ def scrapper_table(html: str) -> list:
     :param html: pagina shopping ja ordenada do menor para o maior
     :return: uma lista com objetos representando cada linha dentro do shopping
     """
+
     soup = BeautifulSoup(html, "html.parser")
     table_data = soup.find_all("table")
 
-    # print(len(table_data))
-
+    products_values = []
     for i in range(len(table_data)):
         for j in range(len(table_data[i])):
             j = table_data[j].find_all_next("tr")
             for k in range(len(j)):
-                # print(j[k])
-                # print("posição -->", k, j[k])
-                get_all_td(html_slice=str(j[k]))
-            # sleep(999)
-            # print("Esse é o elemento -->", k, "-->", j[k])
-            # if k == 1:
-            #     get_all_td(html_slice=str(j[k]))
-        # print(i, "--->", table_data[i])
-        # print()
-        # print()
-        # print()
-    return []
+                products_values = get_all_td(html_slice=str(j[k]))
+    return products_values
 
 
-def get_all_td(html_slice: str) -> None:
+def get_all_td(html_slice: str) -> list:
     """
     :param html_slice: uma fatia da tabela
     :return: valores dentro de uma lista (valor, valor parcelado)
     """
+    product_list = []
     soup = BeautifulSoup(html_slice, "html.parser")
     td = soup.find_all("td")
     for i in range(len(td)):
         if i == 2:
             # print(td[i])
-            extract_values(txt=str(td[i]))
+            product_values = extract_values(txt=str(td[i]))
+            print("get_all_td", product_values)
+            product_list.append(product_values)
+    return product_list
 
 
 def extract_values(txt: str) -> list[str, str] | None:
@@ -215,7 +224,8 @@ def extract_values(txt: str) -> list[str, str] | None:
     if validation:
         value = validation.group().rstrip().replace(" ", "")
         installment = str(installment).rstrip().replace(" ", "")
-        print("valores capturados", value, installment)
+        TMP_RESULT_OBJ["preco_produto"] = value
+        TMP_RESULT_OBJ["preco_parcelado"] = installment
         return [value, installment]
     else:
         print("Não encontrei valor e nem valor de parcelamento!")
