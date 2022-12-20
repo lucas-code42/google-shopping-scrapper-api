@@ -1,10 +1,8 @@
 [
-  [
-    {
-      "referencia": "https://www.google.com/shopping/product/13081050285524083285/offers?q=Ar+Condicionado+Split+Hw+On/off+Eco+Garden+Gree+18000+Btus,+Quente/Frio,+220V,+Monof%C3%A1sico+%E2%80%93+GWH18QD-D3NNB4B&amp;biw=901&amp;bih=816&amp;dpr=1&amp;prds=eto:5002041761805547157_0,pid:12191292523765373482&amp;sa=X&amp;ved=0ahUKEwjF9P6k44b8AhVZrJUCHYkcBgEQ3q4ECJgQ\"",
-      "nome_produto": "Ar Condicionado Split G-Top Plus On/off Gree 9000 Frio 220V",
-      "preco_produto": "\u00a01.599,10",
-      "preco_parcelado": "12x\u00a0133,25"
-    }
-  ]
+  {
+    'referencia': 'https://www.google.com/shopping/product/6905785312974593499/offers?q=Ar+Condicionado+Split+Hw+On/off+Eco+Garden+Gree+18000+Btus,+Quente/Frio,+220V,+Monof%C3%A1sico+%E2%80%93+GWH18QD-D3NNB4B&amp;biw=901&amp;bih=816&amp;dpr=1&amp;prds=eto:1491491339974754240_0,pid:10397234277041838924,rsk:PC_2112982988130944558&amp;sa=X&amp;ved=0ahUKEwjBn9Oc9Ib8AhVRLrkGHbUeD3cQ3q4ECLUK"',
+    'nome_produto': 'Ar Condicionado Split Gree Eco Garden Inverter 12000 Btus Quente/Frio 220V',
+    'preco_produto': '\xa01.691,10',
+    'preco_parcelado': '10x\xa0187,90-comjuros</div'
+  }
 ]

@@ -7,7 +7,6 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 
 RESULT = []
-TMP_RESULT_OBJ = {}
 TMP_RESULT_LIST = []
 
 
@@ -76,8 +75,8 @@ class Selenium:
             raise Exception("Erro!")
 
         for index in range(len(shopping_link_list)):
-            TMP_RESULT_LIST.clear()
-            TMP_RESULT_OBJ.clear()
+            # TMP_RESULT_LIST.clear()
+            # TMP_RESULT_OBJ.clear()
 
             shopping_url = url + shopping_link_list[index]
             print(shopping_url)
@@ -95,8 +94,6 @@ class Selenium:
             product_name = get_product_name(html=self.driver.page_source)
             TMP_RESULT_OBJ["nome_produto"] = product_name
             product_table = scrapper_table(html=self.driver.page_source)
-
-            TMP_RESULT_LIST.append(TMP_RESULT_OBJ)
 
         RESULT.append(TMP_RESULT_LIST)
         print("Fora")
@@ -219,13 +216,24 @@ def extract_values(txt: str) -> list[str, str] | None:
         print("Não encontrei sem juros", ex)
 
     # print(txt)
+    # TMP_RESULT_OBJ.clear()
 
     validation = re.search(r'^\s*(?:[1-9]\d{0,2}(?:\.\d{3})*|0),\d{2}$', value)
     if validation:
         value = validation.group().rstrip().replace(" ", "")
         installment = str(installment).rstrip().replace(" ", "")
+
         TMP_RESULT_OBJ["preco_produto"] = value
         TMP_RESULT_OBJ["preco_parcelado"] = installment
+
+        print("OBJT -->", TMP_RESULT_OBJ)
+        print("LISTA -->", TMP_RESULT_LIST)
+
+        TMP_RESULT_LIST.append(TMP_RESULT_OBJ)
+        print()
+        print()
+        print("DEPOIS -->", TMP_RESULT_LIST)
+
         return [value, installment]
     else:
         print("Não encontrei valor e nem valor de parcelamento!")
