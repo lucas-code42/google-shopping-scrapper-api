@@ -6,8 +6,13 @@ import pandas as pd
 from bs4 import BeautifulSoup
 from selenium import webdriver
 
+global RESULT, TMP_RESULT_OBJ, TMP_RESULT_LIST, PRODUCT_NAME, SHOPPING_URL
+
 RESULT = []
+TMP_RESULT_OBJ = {}
 TMP_RESULT_LIST = []
+PRODUCT_NAME = ""
+SHOPPING_URL = ""
 
 
 def read_input_file() -> list:
@@ -79,8 +84,7 @@ class Selenium:
             # TMP_RESULT_OBJ.clear()
 
             shopping_url = url + shopping_link_list[index]
-            print(shopping_url)
-            TMP_RESULT_OBJ["referencia"] = shopping_url
+            print("shopping url -->", shopping_url)
 
             self.driver.get(shopping_url)
 
@@ -92,8 +96,9 @@ class Selenium:
 
             print(f"tabela --> {index}")
             product_name = get_product_name(html=self.driver.page_source)
-            TMP_RESULT_OBJ["nome_produto"] = product_name
-            product_table = scrapper_table(html=self.driver.page_source)
+            print("product name -->", PRODUCT_NAME)
+            product_table = scrapper_table(html=self.driver.page_source,
+                                           product_name=product_name, shopping_url=shopping_url)
 
         RESULT.append(TMP_RESULT_LIST)
         print("Fora")
@@ -127,6 +132,7 @@ class Selenium:
 
 def get_product_name(html: str) -> str:
     """
+    :rtype: object
     :param html: html da página
     :return: nome do produto situado no html
     """
@@ -158,8 +164,10 @@ def format_link_string(link_list: list) -> list:
     return new_link_list
 
 
-def scrapper_table(html: str) -> list:
+def scrapper_table(html: str, product_name: str, shopping_url: str) -> list:
     """
+    :param shopping_url:
+    :param product_name:
     :param html: pagina shopping ja ordenada do menor para o maior
     :return: uma lista com objetos representando cada linha dentro do shopping
     """
@@ -172,12 +180,14 @@ def scrapper_table(html: str) -> list:
         for j in range(len(table_data[i])):
             j = table_data[j].find_all_next("tr")
             for k in range(len(j)):
-                products_values = get_all_td(html_slice=str(j[k]))
+                products_values = get_all_td(html_slice=str(j[k]), product_name=product_name, shopping_url=shopping_url)
     return products_values
 
 
-def get_all_td(html_slice: str) -> list:
+def get_all_td(html_slice: str, product_name: str, shopping_url: str) -> list:
     """
+    :param shopping_url:
+    :param product_name:
     :param html_slice: uma fatia da tabela
     :return: valores dentro de uma lista (valor, valor parcelado)
     """
@@ -187,19 +197,22 @@ def get_all_td(html_slice: str) -> list:
     for i in range(len(td)):
         if i == 2:
             # print(td[i])
-            product_values = extract_values(txt=str(td[i]))
+            product_values = extract_values(txt=str(td[i]), product_name=product_name, shopping_url=shopping_url)
             print("get_all_td", product_values)
             product_list.append(product_values)
     return product_list
 
 
-def extract_values(txt: str) -> list[str, str] | None:
+def extract_values(txt: str, product_name: str, shopping_url: str) -> list[str, str] | None:
     """
+    :param shopping_url:
+    :param product_name:
     :param txt: parte de uma tag <td> html
     :return: uma lista contento na pos 0 o valor e na pos 1 o valor parcelado se houver, caso nao None
     """
     # print(type(txt))
     # print(txt)
+    temp_obj = {}
     original = txt.split(">")
     value = original[2].replace("</span", "").replace("R$", "")
 
@@ -223,16 +236,21 @@ def extract_values(txt: str) -> list[str, str] | None:
         value = validation.group().rstrip().replace(" ", "")
         installment = str(installment).rstrip().replace(" ", "")
 
-        TMP_RESULT_OBJ["preco_produto"] = value
-        TMP_RESULT_OBJ["preco_parcelado"] = installment
+        print("product name -->", PRODUCT_NAME)
+        print("shopping url -->", SHOPPING_URL)
 
-        print("OBJT -->", TMP_RESULT_OBJ)
-        print("LISTA -->", TMP_RESULT_LIST)
+        temp_obj["tabela_referencia"] = shopping_url
+        temp_obj["nome_produto"] = product_name
+        temp_obj["preco_produto"] = value
+        temp_obj["preco_parcelado"] = installment
 
-        TMP_RESULT_LIST.append(TMP_RESULT_OBJ)
+        # print("OBJT -->", temp_obj)
+        # print("LISTA -->", TMP_RESULT_LIST)
+
+        TMP_RESULT_LIST.append(temp_obj)
         print()
         print()
-        print("DEPOIS -->", TMP_RESULT_LIST)
+        # print("DEPOIS -->", TMP_RESULT_LIST)
 
         return [value, installment]
     else:
