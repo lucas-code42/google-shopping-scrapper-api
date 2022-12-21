@@ -177,6 +177,13 @@ def scrapper_table(html: str, product_name: str, shopping_url: str) -> list:
 
     products_values = []
     for i in range(len(table_data)):
+        # print(table_data[i])
+        rel = soup.find_all("a", attrs={"target": "_blank"})
+        for i in range(len(rel)):
+            print()
+            print("N", i, "elemento", rel[i].text)
+            print()
+        sleep(99)
         for j in range(len(table_data[i])):
             j = table_data[j].find_all_next("tr")
             for k in range(len(j)):
