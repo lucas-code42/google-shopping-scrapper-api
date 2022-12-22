@@ -103,9 +103,9 @@ class Selenium:
         RESULT.append(TMP_RESULT_LIST)
         print("Fora")
         print()
-        print(RESULT)
+        # print(RESULT)
         with open("final_result.json", "w") as f:
-            f.write(json.dumps(RESULT))
+            f.write(str(RESULT))
         sleep(999)
         # #  Coletando ‘cookies’ do selenium
         # cookie = self.driver.get_cookies()
@@ -171,11 +171,12 @@ def scrapper_table(html: str, product_name: str, shopping_url: str) -> list:
     :param html: pagina shopping ja ordenada do menor para o maior
     :return: uma lista com objetos representando cada linha dentro do shopping
     """
-
     soup = BeautifulSoup(html, "html.parser")
     table_data = soup.find_all("table")
 
     products_values = []
+    seller = ""
+    market_place_sellers = []
     for i in range(len(table_data)):
         # print(table_data[i])
         market_place = soup.find_all("a", attrs={"target": "_blank"})
@@ -189,18 +190,20 @@ def scrapper_table(html: str, product_name: str, shopping_url: str) -> list:
             else:
                 seller = str(market_place[index].text)
                 seller = seller.replace("Abre em uma nova janela", "").rstrip()
-                print(seller)
-            print()
-        sleep(999)
+                market_place_sellers.append(seller)
+
         for j in range(len(table_data[i])):
             j = table_data[j].find_all_next("tr")
             for k in range(len(j)):
-                products_values = get_all_td(html_slice=str(j[k]), product_name=product_name, shopping_url=shopping_url)
+                products_values = get_all_td(html_slice=str(j[k]),
+                                             product_name=product_name, shopping_url=shopping_url,
+                                             market_place_sellers=market_place_sellers)
     return products_values
 
 
-def get_all_td(html_slice: str, product_name: str, shopping_url: str) -> list:
+def get_all_td(html_slice: str, product_name: str, shopping_url: str, market_place_sellers: list) -> list:
     """
+    :param market_place_sellers:
     :param shopping_url:
     :param product_name:
     :param html_slice: uma fatia da tabela
@@ -209,17 +212,26 @@ def get_all_td(html_slice: str, product_name: str, shopping_url: str) -> list:
     product_list = []
     soup = BeautifulSoup(html_slice, "html.parser")
     td = soup.find_all("td")
+    marketplace = ""
+    txt = ""
     for i in range(len(td)):
+        if i == 11:
+            marketplace = td[i]
+            marketplace = str(marketplace).split("url?q=")[1]
+            marketplace = marketplace.split(".com")[0].replace("https://www.", "")
         if i == 2:
-            # print(td[i])
-            product_values = extract_values(txt=str(td[i]), product_name=product_name, shopping_url=shopping_url)
-            print("get_all_td", product_values)
-            product_list.append(product_values)
+            txt = td[i]
+
+        if marketplace != "" and txt != "":
+            product_values = extract_values(txt=str(txt), product_name=product_name,
+                                            shopping_url=shopping_url, market_place_sellers=marketplace)
+
     return product_list
 
 
-def extract_values(txt: str, product_name: str, shopping_url: str) -> list[str, str] | None:
+def extract_values(txt: str, product_name: str, shopping_url: str, market_place_sellers: str) -> list[str, str] | None:
     """
+    :param market_place_sellers:
     :param shopping_url:
     :param product_name:
     :param txt: parte de uma tag <td> html
@@ -254,6 +266,7 @@ def extract_values(txt: str, product_name: str, shopping_url: str) -> list[str, 
         print("product name -->", PRODUCT_NAME)
         print("shopping url -->", SHOPPING_URL)
 
+        temp_obj["marketplace"] = market_place_sellers
         temp_obj["tabela_referencia"] = shopping_url
         temp_obj["nome_produto"] = product_name
         temp_obj["preco_produto"] = value
