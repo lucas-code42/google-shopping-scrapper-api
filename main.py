@@ -1,40 +1,37 @@
-import json
 import re
 from time import sleep
 
-import pandas as pd
 from bs4 import BeautifulSoup
 from selenium import webdriver
+from xlsxwriter import Workbook
 
-global RESULT, TMP_RESULT_OBJ, TMP_RESULT_LIST, PRODUCT_NAME, SHOPPING_URL
+global RESULT, TMP_RESULT_LIST
 
 RESULT = []
-TMP_RESULT_OBJ = {}
 TMP_RESULT_LIST = []
-PRODUCT_NAME = ""
-SHOPPING_URL = ""
 
 
-def read_input_file() -> list:
-    """
-    Lê os dados de entrada.
-    :return: retorna uma lista com dados lidos
-    """
-    excel_data_df = pd.read_excel('entrada.xlsx')
-    return excel_data_df['Produtos'].tolist()
+#
+# def read_input_file() -> list:
+#     """
+#     Lê os dados de entrada.
+#     :return: retorna uma lista com dados lidos
+#     """
+#     excel_data_df = pd.read_excel('entrada.xlsx')
+#     return excel_data_df['Produtos'].tolist()
 
 
-def format_input_string(input_list: list) -> list:
-    """
-    Limpa os dados de entrada.
-    :param input_list: lista com dados de entrada.
-    :return: nova lista com dados de entrada tratados.
-    """
-    new_list = []
-    for input_data in input_list:
-        input_data = str(input_data).rstrip()
-        new_list.append(input_data)
-    return new_list
+# def format_input_string(input_list: list) -> list:
+#     """
+#     Limpa os dados de entrada.
+#     :param input_list: lista com dados de entrada.
+#     :return: nova lista com dados de entrada tratados.
+#     """
+#     new_list = []
+#     for input_data in input_list:
+#         input_data = str(input_data).rstrip()
+#         new_list.append(input_data)
+#     return new_list
 
 
 class Selenium:
@@ -49,12 +46,14 @@ class Selenium:
         self.op.add_argument("--disable-gpu")
         self.driver = webdriver.Chrome(options=self.op)
 
-    def process(self) -> None:
-        """
-        Inicia as requisições.
+    def process(self, product_to_search: str) -> None:
+        """        Inicia as requisições.
         :return: None.
         """
         #  Url base do scrapper
+
+        print("INICIANDO PROCESSAMENTO")
+
         url = "https://www.google.com"
         self.driver.get(url)
         self.delay()
@@ -62,8 +61,7 @@ class Selenium:
         page_element = self.driver.find_element(
             by="xpath", value="/html/body/div[1]/div[3]/form/div[1]/div[1]/div[1]/div/div[2]/input")
         page_element.click()
-        page_element.send_keys("Ar Condicionado Split Hw On/off Eco Garden Gree 18000 Btus, Quente/Frio, 220V, "
-                               "Monofásico – GWH18QD-D3NNB4B")
+        page_element.send_keys(product_to_search)
         page_element.submit()
         self.delay()
 
@@ -72,7 +70,7 @@ class Selenium:
         self.delay()
 
         #  Pegando HTML da página
-        write_html(html=self.driver.page_source, prefix_name="analise")
+        # write_html(html=self.driver.page_source, prefix_name="analise")
 
         shopping_link_list = self.verify_if_compare(html=self.driver.page_source)
         if shopping_link_list is None:
@@ -80,35 +78,31 @@ class Selenium:
             raise Exception("Erro!")
 
         for index in range(len(shopping_link_list)):
-            # TMP_RESULT_LIST.clear()
-            # TMP_RESULT_OBJ.clear()
-
             shopping_url = url + shopping_link_list[index]
-            print("shopping url -->", shopping_url)
 
             self.driver.get(shopping_url)
 
             #  Ordena usando o filtro do google
             page_element = self.driver.find_element(by="xpath", value='//*[@id="sh-osd__headers"]/th[4]/a')
             page_element.click()
-
-            write_html(html=self.driver.page_source, prefix_name="tabela")
-
-            print(f"tabela --> {index}")
+            # write_html(html=self.driver.page_source, prefix_name="tabela")
             product_name = get_product_name(html=self.driver.page_source)
-            print("product name -->", PRODUCT_NAME)
-            product_table = scrapper_table(html=self.driver.page_source,
-                                           product_name=product_name, shopping_url=shopping_url)
+            scrapper_table(
+                html=self.driver.page_source,
+                product_name=product_name,
+                shopping_url=shopping_url
+            )
 
         RESULT.append(TMP_RESULT_LIST)
-        print("Fora")
-        print()
-        # print(RESULT)
+
         with open("final_result.json", "w") as f:
             f.write(str(RESULT))
-        sleep(999)
-        # #  Coletando ‘cookies’ do selenium
-        # cookie = self.driver.get_cookies()
+        generate_report(data=RESULT)
+
+        print()
+        print()
+        print("Fim do processamento.")
+        return
 
     @staticmethod
     def delay():
@@ -140,11 +134,8 @@ def get_product_name(html: str) -> str:
     a_tag = soup.find_all("a")
     for i in range(len(a_tag)):
         if i == 7:
-            # print(a_tag[i])
-            # print("ok")
             product_name = str(a_tag[i]).split(">")
             product_name = product_name[-2].replace("</a", "").rstrip()
-            print("nome do produto --->", product_name)
             return product_name
 
 
@@ -173,16 +164,11 @@ def scrapper_table(html: str, product_name: str, shopping_url: str) -> list:
     """
     soup = BeautifulSoup(html, "html.parser")
     table_data = soup.find_all("table")
-
     products_values = []
-    seller = ""
     market_place_sellers = []
     for i in range(len(table_data)):
-        # print(table_data[i])
         market_place = soup.find_all("a", attrs={"target": "_blank"})
         for index in range(len(market_place)):
-            print()
-            # print("N", i, "elemento", market_place[i].text)
             if market_place[index].text == "Acessar o siteAbre em uma nova janela":
                 continue
             elif market_place[index].text == "Learn more":
@@ -196,14 +182,13 @@ def scrapper_table(html: str, product_name: str, shopping_url: str) -> list:
             j = table_data[j].find_all_next("tr")
             for k in range(len(j)):
                 products_values = get_all_td(html_slice=str(j[k]),
-                                             product_name=product_name, shopping_url=shopping_url,
-                                             market_place_sellers=market_place_sellers)
+                                             product_name=product_name,
+                                             shopping_url=shopping_url)
     return products_values
 
 
-def get_all_td(html_slice: str, product_name: str, shopping_url: str, market_place_sellers: list) -> list:
+def get_all_td(html_slice: str, product_name: str, shopping_url: str) -> list:
     """
-    :param market_place_sellers:
     :param shopping_url:
     :param product_name:
     :param html_slice: uma fatia da tabela
@@ -221,11 +206,11 @@ def get_all_td(html_slice: str, product_name: str, shopping_url: str, market_pla
             marketplace = marketplace.split(".com")[0].replace("https://www.", "")
         if i == 2:
             txt = td[i]
-
         if marketplace != "" and txt != "":
-            product_values = extract_values(txt=str(txt), product_name=product_name,
-                                            shopping_url=shopping_url, market_place_sellers=marketplace)
-
+            product_values = extract_values(txt=str(txt),
+                                            product_name=product_name,
+                                            shopping_url=shopping_url,
+                                            market_place_sellers=marketplace)
     return product_list
 
 
@@ -237,8 +222,6 @@ def extract_values(txt: str, product_name: str, shopping_url: str, market_place_
     :param txt: parte de uma tag <td> html
     :return: uma lista contento na pos 0 o valor e na pos 1 o valor parcelado se houver, caso nao None
     """
-    # print(type(txt))
-    # print(txt)
     temp_obj = {}
     original = txt.split(">")
     value = original[2].replace("</span", "").replace("R$", "")
@@ -255,16 +238,10 @@ def extract_values(txt: str, product_name: str, shopping_url: str, market_place_
     except Exception as ex:
         print("Não encontrei sem juros", ex)
 
-    # print(txt)
-    # TMP_RESULT_OBJ.clear()
-
     validation = re.search(r'^\s*(?:[1-9]\d{0,2}(?:\.\d{3})*|0),\d{2}$', value)
     if validation:
         value = validation.group().rstrip().replace(" ", "")
         installment = str(installment).rstrip().replace(" ", "")
-
-        print("product name -->", PRODUCT_NAME)
-        print("shopping url -->", SHOPPING_URL)
 
         temp_obj["marketplace"] = market_place_sellers
         temp_obj["tabela_referencia"] = shopping_url
@@ -272,14 +249,16 @@ def extract_values(txt: str, product_name: str, shopping_url: str, market_place_
         temp_obj["preco_produto"] = value
         temp_obj["preco_parcelado"] = installment
 
-        # print("OBJT -->", temp_obj)
-        # print("LISTA -->", TMP_RESULT_LIST)
+        print()
+        print("Dados coletados:")
+        print("Marketplace:", market_place_sellers)
+        print("Tabela:", shopping_url)
+        print("Nome do Produto:", product_name)
+        print("Preço do Produto:", product_name)
+        print("Preço a Prazo:", installment)
+        print()
 
         TMP_RESULT_LIST.append(temp_obj)
-        print()
-        print()
-        # print("DEPOIS -->", TMP_RESULT_LIST)
-
         return [value, installment]
     else:
         print("Não encontrei valor e nem valor de parcelamento!")
@@ -297,18 +276,46 @@ def write_html(html: str, prefix_name: str) -> None:
     return
 
 
-def main() -> None:
+def generate_report(data: list):
+    ordered_list = [
+        "marketplace",
+        "tabela_referencia",
+        "nome_produto",
+        "preco_produto",
+        "preco_parcelado"
+    ]
+
+    wb = Workbook("relatorio.xlsx")
+    ws = wb.add_worksheet("rascunho")  # Or leave it blank. The default name is "Sheet 1"
+
+    first_row = 0
+    for header in ordered_list:
+        col = ordered_list.index(header)  # We are keeping order.
+        ws.write(first_row, col, header)  # We have written first row which is the header of worksheet also.
+
+    row = 1
+    for player in data:
+        for obj in player:
+            for _key, _value in obj.items():
+                col = ordered_list.index(_key)
+                ws.write(row, col, _value)
+            row += 1  # enter the next row
+    wb.close()
+
+
+def main(product_to_search: str) -> None:
     """
     Main.
     :return: None
     """
-    products = read_input_file()
-    products = format_input_string(products)
-    for i in products:
-        print(i)
+    # products = read_input_file()
+    # products = format_input_string(products)
+    # for i in products:
+    #     print(i)
 
-    Selenium().process()
+    Selenium().process(product_to_search=product_to_search)
 
 
 if __name__ == "__main__":
-    main()
+    product = input("Digite o nome do produto a ser buscado: ")
+    main(product_to_search=product)
