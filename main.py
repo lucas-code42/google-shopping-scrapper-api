@@ -95,8 +95,8 @@ class Selenium:
 
         RESULT.append(TMP_RESULT_LIST)
 
-        with open("final_result.json", "w") as f:
-            f.write(str(RESULT))
+        # with open("final_result.json", "w") as f:
+        #     f.write(str(RESULT))
         generate_report(data=RESULT)
 
         print()
