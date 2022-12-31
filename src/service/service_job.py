@@ -1,3 +1,5 @@
+#!/usr/bin/env python3.10
+
 import re
 import traceback
 from time import sleep

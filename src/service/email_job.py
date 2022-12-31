@@ -1,3 +1,5 @@
+#!/usr/bin/env python3.10
+
 import smtplib
 import traceback
 from email import encoders
