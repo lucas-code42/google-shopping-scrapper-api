@@ -16,6 +16,9 @@ user_1 = "cca69230-b194-478b-9618-890c639e2cec"
 
 @app.route("/process", methods=["POST"])
 def process():
+    """
+    main func
+    """
     authorization = request.headers.get("Authorization")
 
     if authorization not in [user_0, user_1]:
