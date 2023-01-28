@@ -1,5 +1,5 @@
 #!/usr/bin/env python3.10
-
+import os
 import smtplib
 import traceback
 from email import encoders
@@ -17,7 +17,7 @@ def send_email(to_addr: str, email_token: str) -> bool:
     print("\n\nINICIANDO SERVIÇO DE EMAIL", flush=True)
     try:
         msg = MIMEMultipart()
-        from_addr = "lucasdearaujo.brandao@gmail.com"
+        from_addr = os.getenv("EMAIL")
 
         msg['From'] = from_addr
         msg['To'] = to_addr

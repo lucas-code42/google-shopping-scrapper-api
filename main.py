@@ -10,15 +10,15 @@ from src.service.service_job import Selenium
 
 app = Flask(__name__)
 
-yasmin = "a0ffa9a4-f1a6-4960-a6b5-ff357c22d5b1"
-lucas = "cca69230-b194-478b-9618-890c639e2cec"
+user_0 = "a0ffa9a4-f1a6-4960-a6b5-ff357c22d5b1"
+user_1 = "cca69230-b194-478b-9618-890c639e2cec"
 
 
 @app.route("/process", methods=["POST"])
 def process():
     authorization = request.headers.get("Authorization")
 
-    if authorization not in [yasmin, lucas]:
+    if authorization not in [user_0, user_1]:
         response = make_response({"message": "Unauthorized", "process_status": False})
         response.status_code = 401
         return response

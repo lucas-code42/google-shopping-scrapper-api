@@ -21,7 +21,7 @@ class Selenium:
 
     def __init__(self) -> None:
         self.op = webdriver.ChromeOptions()
-        self.op.add_argument("headless")
+        # self.op.add_argument("headless")
         self.op.add_argument("--no-sandbox")
         self.op.add_argument("--disable-gpu")
         self.driver = webdriver.Chrome(options=self.op)
